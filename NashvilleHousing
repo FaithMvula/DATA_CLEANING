@@ -96,7 +96,7 @@ SET
 SELECT *
 From PortfolioProject.nashville_housing;
 
-                                                  ## Q2:PART 3
+                                                       ## Q2:PART 3
                             ## Splitting the collumns, placing them in order and providing names for the new columns
 
 SELECT OwnerAddress
@@ -134,15 +134,10 @@ SET OwnerSplitState = PARSENAME(REPLACE(OwnerAddress, ',', '.') , 1)
 
 
 SELECT *
-FROM PortfolioProject.nashville_housing
+FROM PortfolioProject.nashville_housing;
 
 
-
-
---------------------------------------------------------------------------------------------------------------------------
-
-
-## Q4:  Change Y and N to Yes and No in "Sold as Vacant" field.
+                                             ## Q4:  Change Y and N to Yes and No in "Sold as Vacant" field.
 
 
 SELECT
@@ -175,9 +170,7 @@ SET SoldAsVacant = CASE When SoldAsVacant = 'Y' THEN 'Yes'
 
 
 
------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-                                     ##Q5: Remove Duplicates
+                                                                    ##Q4: Remove Duplicates
 
 WITH RowNumCTE AS(
 SELECT  *,
@@ -207,11 +200,7 @@ From PortfolioProject.nashville_housing ;
 
 
 
-
----------------------------------------------------------------------------------------------------------
-
-                           ## Q6 : Delete Unused Columns
-
+                                                ## Q5: Delete Unused Columns
 
 
 SELECT *
