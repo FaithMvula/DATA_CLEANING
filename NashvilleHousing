@@ -1,0 +1,227 @@
+                                                   ## DATA CLEANING IN SQL PROJECT
+
+SELECT *
+FROM  PortfolioProject.nashville_housing  ;
+
+
+                         ## Q1. Populate the NULL values on the  PropertyAddress column, In the NashvilleHousing Table
+
+SELECT *
+FROM 
+           PortfolioProject.nashville_housing           
+WHERE      
+           PropertyAddress is null
+ORDER BY 
+           ParcelID ;
+
+-- The ParcelID and the Property address are going to be the same.
+-- By connecting the  Property Address column with the ParcelID column, 
+-- we can populate the PropertyAddress column.
+-- To do so, we will need to self-join the table
+
+                                                        ## Q1: PART A
+
+SELECT  
+        a.ParcelID,
+        a.PropertyAddress,
+        b.ParcelID, 
+        b.PropertyAddress, 
+        IFNULL(a.PropertyAddress,b.PropertyAddress)
+FROM 
+
+
+      PortfolioProject.nashville_housing a
+JOIN 
+      PortfolioProject.nashville_housing b
+ON    
+        a.ParcelID = b.ParcelID
+AND     a.UniqueID_ <> b.UniqueID_                         -- Since the UniqueIDdoes not repeat,we will never get the same row.
+                                                           -- So we will not be joining these two tables with the UniqueID
+WHERE   a.PropertyAddress is null;
+
+                                                      ## Q1: PART B 
+## UPDATING THE TABLE TO REMOVE THE ERRORS.
+
+UPDATE a 
+SET 
+        PropertyAddress = ISNULL(a.PropertyAddress,b.PropertyAddress)
+From
+        PortfolioProject.dbo.NashvilleHousing a
+JOIN  
+        PortfolioProject.dbo.NashvilleHousing b
+ON  
+        a.ParcelID = b.ParcelID
+AND     
+        a.UniqueID_ <> b.UniqueID_
+WHERE 
+       a.PropertyAddress IS NULL;
+
+
+                                              #   Q2: Break the Address into Individual Columns (Address, City, State )
+
+
+SELECT 
+       PropertyAddress
+FROM 
+      PortfolioProject.nashville_housing
+
+                                                               ##Q2: PART 1
+## Breaking the Address into two columns by using the ',' delimiter .
+
+SELECT
+       SUBSTRING(PropertyAddress, 1, CHARINDEX(',', PropertyAddress) -1 ) as Address,
+       SUBSTRING(PropertyAddress, CHARINDEX(',', PropertyAddress) + 1 , LEN(PropertyAddress)) as Address
+
+FROM    PortfolioProject.nashville_housing
+
+
+ALTER TABLE nashville_housing 
+ADD                  PropertySplitAddress Nvarchar(255);
+
+                                                                  #Q2: Part2 
+                                                             ## Updating nashville_housing Table
+UPDATE  nashville_housing
+SET 
+     PropertySplitAddress = SUBSTRING(PropertyAddress, 1, CHARINDEX(',', PropertyAddress) -1 )
+
+
+ALTER TABLE nashville_housing
+Add PropertySplitCity Nvarchar(255);
+
+UPDATE nashville_housing
+SET 
+         PropertySplitCity = SUBSTRING(PropertyAddress, CHARINDEX(',', PropertyAddress) + 1 , LEN(PropertyAddress)) ;
+        
+
+SELECT *
+From PortfolioProject.nashville_housing;
+
+                                                  ## Q2:PART 3
+                            ## Splitting the collumns, placing them in order and providing names for the new columns
+
+SELECT OwnerAddress
+FROM   PortfolioProject.nashville_housing
+
+
+SELECT
+            PARSENAME(REPLACE(OwnerAddress, ',', '.') , 3),
+            PARSENAME(REPLACE(OwnerAddress, ',', '.') , 2),
+            PARSENAME(REPLACE(OwnerAddress, ',', '.') , 1)
+From  
+           PortfolioProject.nashville_housing
+
+
+ALTER TABLE nashville_housing
+Add OwnerSplitAddress Nvarchar(255);
+
+UPDATE nashville_housing
+SET OwnerSplitAddress = PARSENAME(REPLACE(OwnerAddress, ',', '.') , 3)
+
+
+ALTER TABLE nashville_housing
+Add OwnerSplitCity Nvarchar(255);
+
+UPDATE nashville_housing
+SET OwnerSplitCity = PARSENAME(REPLACE(OwnerAddress, ',', '.') , 2)
+
+
+ALTER TABLE NashvilleHousing
+Add OwnerSplitState Nvarchar(255);
+
+UPDATE NashvilleHousing
+SET OwnerSplitState = PARSENAME(REPLACE(OwnerAddress, ',', '.') , 1)
+
+
+
+SELECT *
+FROM PortfolioProject.nashville_housing
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------------
+
+
+## Q4:  Change Y and N to Yes and No in "Sold as Vacant" field.
+
+
+SELECT
+          Distinct(SoldAsVacant), Count(SoldAsVacant)
+FROM
+          PortfolioProject.nashville_housing
+GROUP BY 
+          SoldAsVacant
+ORDER BY  2
+
+
+
+SELECT            
+          SoldAsVacant,
+          CASE When SoldAsVacant = 'Y' THEN 'Yes'
+          When SoldAsVacant = 'N' THEN 'No'
+    ELSE SoldAsVacant
+	  END
+From PortfolioProject.nashville_housing
+
+
+Update nashville_housing
+SET SoldAsVacant = CASE When SoldAsVacant = 'Y' THEN 'Yes'
+	   When SoldAsVacant = 'N' THEN 'No'
+	   ELSE SoldAsVacant
+	   END ;
+
+
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+                                     ##Q5: Remove Duplicates
+
+WITH RowNumCTE AS(
+SELECT  *,
+	         ROW_NUMBER() OVER (
+	         PARTITION BY ParcelID,
+			   	 PropertyAddress,
+				   SalePrice,
+				   SaleDate,
+				  LegalReference
+ORDER BY
+					UniqueID ) row_num
+
+FEOM PortfolioProject.nashville_housing
+--order by ParcelID
+)
+
+
+SELECT *
+FROM RowNumCTE
+WHERE row_num > 1
+ORDER BY PropertyAddress ;
+
+
+
+SELECTt *
+From PortfolioProject.nashville_housing ;
+
+
+
+
+---------------------------------------------------------------------------------------------------------
+
+                           ## Q6 : Delete Unused Columns
+
+
+
+SELECT *
+FROM       
+              PortfolioProject.nashville_housing
+
+
+ALTER TABLE PortfolioProject.nashville_housing
+DROP COLUMN 
+            OwnerAddress, 
+            TaxDistrict, 
+            PropertyAddress, 
+            SaleDate
